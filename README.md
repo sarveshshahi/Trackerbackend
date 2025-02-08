@@ -1,170 +1,176 @@
-# Trackerr - Location Tracking System
+# Trackerr - Location Tracking System (Backend)
 
-## Overview
+## 🚀 Overview
+Trackerr is a **real-time location tracking system** built using **Node.js, Express, MongoDB**, and **Socket.io**. This backend handles user authentication, location tracking, and admin controls, following the **MVC architecture**.
 
-Trackerr is a web-based location tracking system that allows users to share their real-time location via a Progressive Web App (PWA) and enables admins to monitor live locations and historical routes using a web dashboard.
+---
 
-## Features
-
-- **Live Location Tracking**: Users can share their real-time location via a PWA.
-- **Admin Dashboard**: View live locations and route history on an interactive map.
-- **Real-Time Updates**: WebSocket-based location streaming for instant updates.
-- **Historical Route Storage**: Stores past routes for analysis.
-- **Secure Authentication**: JWT-based authentication for users and admins.
-- **Scalable Backend**: Optimized for large-scale tracking with load balancing and database indexing.
-- **Offline Support**: Progressive Web App functionality with background sync.
-
-## System Architecture
-
-### **Frontend (React PWA)**
-
-- Provides an interface for users to allow location tracking.
-- Displays live location updates for admins.
-- Uses Google Maps API / Leaflet.js for visualization.
-
-### **Backend (Node.js with Express)**
-
-- Handles API requests for authentication and location data storage.
-- Implements real-time updates using WebSocket (Socket.IO).
-
-### **Database (MongoDB/PostgreSQL)**
-
-- Stores user details, live locations, and historical route data.
-- Optimized with indexing and partitioning.
-
-## Data Flow
-
-1. **User Location Tracking**:
-
-   - A user allows location sharing via the browser.
-   - The browser sends periodic location updates (latitude, longitude, timestamp) to the backend.
-
-2. **Backend Processing**:
-
-   - Validates and stores the location data in a database.
-   - Optionally pushes real-time location updates to admin clients via WebSocket.
-
-3. **Admin Location Monitoring**:
-
-   - Admins use the web dashboard to view live locations on a map.
-   - The dashboard fetches or subscribes to real-time location updates.
-
-## Database Schema
-
-### **User Table**
-
-| Field       | Type      | Description                    |
-| ----------- | --------- | ------------------------------ |
-| user\_id    | UUID      | Unique identifier for the user |
-| name        | String    | User's name                    |
-| email       | String    | User's email                   |
-| password    | String    | Hashed password                |
-| role        | Enum      | admin or user                  |
-| created\_at | Timestamp | Account creation date          |
-
-### **Location Table**
-
-| Field        | Type      | Description                      |
-| ------------ | --------- | -------------------------------- |
-| location\_id | UUID      | Unique identifier for each entry |
-| user\_id     | UUID      | Foreign key referencing user\_id |
-| latitude     | Float     | Latitude of the location         |
-| longitude    | Float     | Longitude of the location        |
-| timestamp    | Timestamp | Time of the location update      |
-
-### **Route Table**
-
-| Field       | Type       | Description                       |
-| ----------- | ---------- | --------------------------------- |
-| route\_id   | UUID       | Unique identifier for the route   |
-| user\_id    | UUID       | Foreign key referencing user\_id  |
-| start\_time | Timestamp  | When the route started            |
-| end\_time   | Timestamp  | When the route ended              |
-| coordinates | JSON/Array | Array of latitude/longitude pairs |
-
-## API Endpoints
-
-### **User Authentication**
-
-- **POST** `/api/auth/register` → Register a new user
-- **POST** `/api/auth/login` → Authenticate a user and return a JWT
-
-### **Location Updates**
-
-- **POST** `/api/location` → Accepts location updates (latitude, longitude, timestamp)
-- **GET** `/api/location/live` → Retrieves live locations of all users
-
-### **Routes**
-
-- **GET** `/api/routes/:user_id` → Retrieve historical route data for a user
-
-## Real-Time Communication
-
-- Uses **WebSocket (Socket.IO)** to broadcast live location updates to admin clients.
-- The admin panel subscribes to updates and displays them on the map.
-
-## Scalability Considerations
-
-### **Database Optimization**
-
-- Index `user_id` in the Location and Route tables for faster lookups.
-- Use partitioning for large Location tables (e.g., partition by user or date).
-
-### **Real-Time Updates**
-
-- Use a message broker like **Redis Pub/Sub** for distributing location updates to multiple admin clients.
-
-### **Storage Management**
-
-- Archive older location data into cold storage to save on database costs.
-
-### **Load Balancing**
-
-- Use load balancers to distribute traffic across multiple backend instances.
-
-## Deployment
-
-### **Backend**
-
-- Deploy on **Render / AWS Lambda / DigitalOcean**.
-- Database hosted on **MongoDB Atlas / Supabase (PostgreSQL)**.
-
-### **Frontend**
-
-- Deploy PWA on **Vercel / Netlify**.
-- Ensure **HTTPS** for location tracking permissions.
-
-## Installation & Setup
-
-### **1. Clone the Repository**
-
-```sh
- git clone https://github.com/your-username/trackerr.git
- cd trackerr
+## 📂 Project Structure
+```
+trackerr-backend/
+│── db/                # Database Connection
+│── models/            # Database Models (MongoDB Schema)
+│── controllers/       # Controllers (Business Logic)
+│── routes/            # API Routes
+│── middlewares/       # Custom Middleware (Error Handling, Auth, etc.)
+│── utils/             # Utility Functions
+│── public/            # Static Files
+│── .env               # Environment Variables
+│── app.js             # Express App Configuration
+│── index.js           # Main Entry Point
+│── package.json       # Dependencies & Scripts
+│── README.md          # Documentation
 ```
 
-### **2. Backend Setup**
+---
 
+## 🛠️ Setup & Installation
+
+### 1️⃣ Clone Repository
 ```sh
- cd backend
- npm install
- npm start
+git clone https://github.com/your-repo/trackerr-backend.git
+cd trackerr-backend
 ```
 
-### **3. Frontend Setup**
-
+### 2️⃣ Install Dependencies
 ```sh
- cd frontend
- npm install
- npm run dev
+npm install
 ```
 
-## Contributors
+### 3️⃣ Configure Environment Variables
+Create a `.env` file in the root directory and add the following:
+```ini
+PORT=8000
+MONGODB_URI=your_mongodb_connection_string
+DB_NAME=trackerr
+JWT_SECRET=your_jwt_secret
+CORS_ORIGIN=http://localhost:3000
+```
 
-- **[Your Name]** - Developer & Maintainer
+### 4️⃣ Start Development Server
+```sh
+npm run dev
+```
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 📌 API Endpoints
 
-sarvesh shahi
+### **User Authentication** (`/api/auth`)
+| Method | Endpoint       | Description         |
+|--------|--------------|---------------------|
+| POST   | /register    | Register a new user |
+| POST   | /login       | Login user & get JWT token |
+
+### **Location Tracking** (`/api/location`)
+| Method | Endpoint       | Description         |
+|--------|--------------|---------------------|
+| POST   | /            | Send live location  |
+| GET    | /live        | Get users' live locations |
+
+### **Admin Routes** (`/api/admin`)
+| Method | Endpoint       | Description         |
+|--------|--------------|---------------------|
+| GET    | /users       | Get all registered users |
+| GET    | /routes      | View users' travel routes |
+
+---
+
+## 🛡️ Middleware
+- **Auth Middleware** (`middlewares/auth.middleware.js`) - Protects private routes using JWT authentication.
+- **Error Handling Middleware** (`middlewares/error.middleware.js`) - Manages API errors and sends proper responses.
+
+---
+
+## 🚀 Real-Time Tracking (Socket.io)
+This backend integrates **Socket.io** to enable real-time location updates. The **frontend PWA** sends live location updates, and the **admin dashboard** visualizes the users' movement.
+
+---
+
+## 📦 Additional Features
+- 📍 **Real-time GPS tracking**
+- 🔐 **JWT authentication & role-based access**
+- 📊 **Admin dashboard for monitoring users**
+- 📂 **Export location data to Excel**
+- 📡 **Socket.io integration for live updates**
+
+---
+
+# Trackerr - Database Schema
+
+## 1. User Table
+Stores information about users (both admins and regular users).
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| user_id     | UUID        | PRIMARY KEY                                      | Unique identifier for the user    |
+| name        | VARCHAR(255)| NOT NULL                                         | Full name of the user             |
+| username    | VARCHAR(255)| NOT NULL, UNIQUE                                | Unique username for login         |
+| email       | VARCHAR(255)| NOT NULL, UNIQUE                                | User's email address              |
+| password    | TEXT        | NOT NULL                                         | Hashed password for authentication |
+| role        | ENUM('admin', 'user') | NOT NULL                         | Defines if the user is an admin or regular user |
+| mobile_no   | VARCHAR(15) | NULL                                            | User’s mobile number (optional)  |
+| created_at  | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP                       | Account creation date             |
+| updated_at  | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | Last update timestamp |
+
+---
+
+## 2. Location Table
+Stores real-time location updates from users.
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| location_id | UUID        | PRIMARY KEY                                      | Unique identifier for each location update |
+| user_id     | UUID        | FOREIGN KEY REFERENCES user(user_id) ON DELETE CASCADE | Links location to a specific user |
+| latitude    | DECIMAL(10, 8) | NOT NULL                                      | Latitude of the user's location   |
+| longitude   | DECIMAL(11, 8) | NOT NULL                                      | Longitude of the user's location  |
+| timestamp   | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP                       | Time when the location was recorded |
+
+---
+
+## 3. Route Table
+Stores users' traveled paths (historical routes).
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| route_id    | UUID        | PRIMARY KEY                                      | Unique identifier for the route   |
+| user_id     | UUID        | FOREIGN KEY REFERENCES user(user_id) ON DELETE CASCADE | Links route to a specific user |
+| start_time  | TIMESTAMP   | NOT NULL                                         | Time when the route started       |
+| end_time    | TIMESTAMP   | NULL                                            | Time when the route ended (null if still active) |
+| coordinates | JSON        | NOT NULL                                        | Stores an array of latitude/longitude pairs |
+
+---
+
+## 4. Admin Table *(Optional)*
+If you prefer to keep admins separate, you can add an **Admin Table**, but typically, admins are just part of the **User Table**.
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| admin_id    | UUID        | PRIMARY KEY                                      | Unique identifier for the admin   |
+| user_id     | UUID        | FOREIGN KEY REFERENCES user(user_id) ON DELETE CASCADE | Links to the user table |
+| created_at  | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP                       | Account creation date             |
+
+---
+
+## Relationships Summary
+- **User → Location** *(One-to-Many)* → A user can have multiple location updates.
+- **User → Route** *(One-to-Many)* → A user can have multiple historical routes.
+- **User (Admin Role)** can view all locations and routes.
+
+
+
+
+## ❓ Contributing & Support
+Feel free to **fork** this repository and contribute by submitting a **pull request**. For issues, create a GitHub **issue**.
+
+---
+
+## 👨‍💻 Author
+**Your Name**  
+[GitHub](https://github.com/your-profile) • [LinkedIn](https://linkedin.com/in/your-profile)
+
+---
+
+## 📜 License
+This project is licensed under the **MIT License**. Feel free to use and modify it!
+

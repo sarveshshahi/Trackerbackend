@@ -96,6 +96,70 @@ This backend integrates **Socket.io** to enable real-time location updates. The 
 
 ---
 
+# Trackerr - Database Schema
+
+## 1. User Table
+Stores information about users (both admins and regular users).
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| user_id     | UUID        | PRIMARY KEY                                      | Unique identifier for the user    |
+| name        | VARCHAR(255)| NOT NULL                                         | Full name of the user             |
+| username    | VARCHAR(255)| NOT NULL, UNIQUE                                | Unique username for login         |
+| email       | VARCHAR(255)| NOT NULL, UNIQUE                                | User's email address              |
+| password    | TEXT        | NOT NULL                                         | Hashed password for authentication |
+| role        | ENUM('admin', 'user') | NOT NULL                         | Defines if the user is an admin or regular user |
+| mobile_no   | VARCHAR(15) | NULL                                            | User’s mobile number (optional)  |
+| created_at  | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP                       | Account creation date             |
+| updated_at  | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | Last update timestamp |
+
+---
+
+## 2. Location Table
+Stores real-time location updates from users.
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| location_id | UUID        | PRIMARY KEY                                      | Unique identifier for each location update |
+| user_id     | UUID        | FOREIGN KEY REFERENCES user(user_id) ON DELETE CASCADE | Links location to a specific user |
+| latitude    | DECIMAL(10, 8) | NOT NULL                                      | Latitude of the user's location   |
+| longitude   | DECIMAL(11, 8) | NOT NULL                                      | Longitude of the user's location  |
+| timestamp   | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP                       | Time when the location was recorded |
+
+---
+
+## 3. Route Table
+Stores users' traveled paths (historical routes).
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| route_id    | UUID        | PRIMARY KEY                                      | Unique identifier for the route   |
+| user_id     | UUID        | FOREIGN KEY REFERENCES user(user_id) ON DELETE CASCADE | Links route to a specific user |
+| start_time  | TIMESTAMP   | NOT NULL                                         | Time when the route started       |
+| end_time    | TIMESTAMP   | NULL                                            | Time when the route ended (null if still active) |
+| coordinates | JSON        | NOT NULL                                        | Stores an array of latitude/longitude pairs |
+
+---
+
+## 4. Admin Table *(Optional)*
+If you prefer to keep admins separate, you can add an **Admin Table**, but typically, admins are just part of the **User Table**.
+
+| Column Name  | Data Type     | Constraints                                        | Description                        |
+|-------------|-------------|--------------------------------------------------|------------------------------------|
+| admin_id    | UUID        | PRIMARY KEY                                      | Unique identifier for the admin   |
+| user_id     | UUID        | FOREIGN KEY REFERENCES user(user_id) ON DELETE CASCADE | Links to the user table |
+| created_at  | TIMESTAMP   | DEFAULT CURRENT_TIMESTAMP                       | Account creation date             |
+
+---
+
+## Relationships Summary
+- **User → Location** *(One-to-Many)* → A user can have multiple location updates.
+- **User → Route** *(One-to-Many)* → A user can have multiple historical routes.
+- **User (Admin Role)** can view all locations and routes.
+
+
+
+
 ## ❓ Contributing & Support
 Feel free to **fork** this repository and contribute by submitting a **pull request**. For issues, create a GitHub **issue**.
 

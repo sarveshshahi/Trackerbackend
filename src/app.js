@@ -12,4 +12,11 @@ const app =express();
  app.use(express.static("public"))
  app.use(cookieParser())
 
+
+ import userRoute from "./routes/user.route.js"
+ app.use("/api/v1/users",userRoute)
+
+
+
+
 export {app}

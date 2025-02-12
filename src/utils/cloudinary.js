@@ -22,8 +22,10 @@ import fs from "fs"
             if (fs.existsSync(localFilePath)) {
                 fs.unlinkSync(localFilePath);
             }
+            console.log("url",response
+            );
             return response;
-    
+                
         } catch (error) {
             console.error("Cloudinary Upload Error:", error);
             if (fs.existsSync(localFilePath)) {

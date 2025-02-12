@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+      - PORT=8000
+      - CORS_ORIGIN=*
+      - ACCESS_TOKEN_SECRET=957ba187f733260c77c6c9858-38bccf9a4cc83f459193ee13395GG_2e32ee366dba
+      - ACCESS_TOKEN_EXPIRY=1h
+      - REFRESH_TOKEN_SECRET=e009db5f5e78e9eab12e57983a2f6102GG-77bbc_25c5ed518163dd40106b29589c7
+      - REFRESH_TOKEN_EXPIRY=604800
+      - CLOUDINARY_CLOUD_NAME=dwjttlysf
+      - CLOUDINARY_API_KEY=922259989815557
+      - CLOUDINARY_API_SECRET=flnp1y2C9LR9aLGhS0vbtPuUX8k
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=mongodb+srv://sarveshshahi1210:sarvesh123@cluster0.4idzmyp.mongodb.net
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"

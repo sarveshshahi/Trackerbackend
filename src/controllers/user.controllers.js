@@ -4,21 +4,31 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
+import redisClient from "../utils/redisClient.js";
 
 const generateAcessTokenAnd = async (userId) => {
   try {
+    console.log('Fetching user with ID:', userId);
     const user = await User.findById(userId);
-    const accessToken = user.generateAccessToken();
+    if (!user) {
+      throw new ApiError(404, 'User not found');
+    }
+   const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
+   
 
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    const refreshTokenExpiry = parseInt(process.env.REFRESH_TOKEN_EXPIRY, 10);
+    await redisClient.set(`refreshToken:${userId}`, refreshToken, {
+      EX: refreshTokenExpiry,
+    });
+    console.log('Refresh token stored in Redis');
 
     return { accessToken, refreshToken };
   } catch (error) {
+    console.error('Error in generateAcessTokenAnd:', error);
     throw new ApiError(
       500,
-      "Something went wrong while generating referesh and access token"
+      'Something went wrong while generating refresh and access token'
     );
   }
 };
@@ -104,7 +114,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(404, "user not exist");
   }
 
-  const ispasswordValid = user.isPasswordCorrect(password);
+  const ispasswordValid = await user.isPasswordCorrect(password);
 
   if (!ispasswordValid) {
     throw new ApiError(401, "invalid user credentials");
@@ -138,32 +148,36 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+// filepath: /e:/Tracker/Trackerbackend/src/controllers/user.controllers.js
 const logoutUser = asyncHandler(async (req, res) => {
-
-  const user=await User.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.user._id,
     {
-        $unset: {
-            refreshToken: ""// this removes the field from document
-        },
+      $unset: {
+        refreshToken: '', // this removes the field from the document
+      },
     },
     {
       new: true,
     }
   );
   if (!user) {
-    throw new ApiError(500, "Logout failed: User not found");
+    throw new ApiError(500, 'Logout failed: User not found');
   }
-  const options={
-    httpOnly:true,
-    secure:true
-}
 
-return res
-.status(200)
-.clearCookie("accessToken",options)
-.clearCookie("refreshToken",options)
-.json(new ApiResponse(200, {}, "User logged Out"))
+  // Remove refresh token from Redis
+  await redisClient.del(`refreshToken:${req.user._id}`);
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .clearCookie('accessToken', options)
+    .clearCookie('refreshToken', options)
+    .json(new ApiResponse(200, {}, 'User logged out'));
 });
 
 
